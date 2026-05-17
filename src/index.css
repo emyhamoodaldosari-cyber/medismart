@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-heading: "Outfit", sans-serif;
+  --font-nav: "Inter", sans-serif;
+  --font-arabic: "Cairo", sans-serif;
+
+  --color-primary: #099aa7;
+  --color-accent: #099aa7;
+  --color-heading: #1f2f31;
+  --color-default: #363f40;
+  --color-surface: #ffffff;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-sans antialiased text-[#363f40] bg-white;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-bold tracking-normal text-[#1f2f31];
+  }
+
+  html[lang="ar"] body,
+  html[lang="ar"] input,
+  html[lang="ar"] textarea,
+  html[lang="ar"] select,
+  html[lang="ar"] button {
+    font-family: "Cairo", "Inter", system-ui, sans-serif;
+  }
+
+  html[lang="ar"] h1,
+  html[lang="ar"] h2,
+  html[lang="ar"] h3,
+  html[lang="ar"] h4,
+  html[lang="ar"] h5,
+  html[lang="ar"] h6 {
+    font-family: "Cairo", "Outfit", sans-serif;
+    letter-spacing: normal;
+    line-height: 1.25;
+  }
+
+  html[dir="rtl"] {
+    direction: rtl;
+  }
+
+  html[dir="rtl"] body {
+    text-align: right;
+  }
+}
+
+@layer utilities {
+  .rtl\:mirror {
+    transform: scaleX(-1);
+  }
+
+  html[dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  html[dir="rtl"] .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+  }
+}
+
+/* Custom pt-32 override - placed outside @layer for higher specificity */
+.pt-32 {
+  padding-top: calc(var(--spacing) * 5) !important;
+}
+
+.medical-gradient {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+}
+
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+}
+
+.editorial-shadow {
+  shadow-box: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+}
+
+.editorial-grid {
+  background-image: radial-gradient(circle, #e2e8f0 1.5px, transparent 1.5px);
+  background-size: 40px 40px;
+}

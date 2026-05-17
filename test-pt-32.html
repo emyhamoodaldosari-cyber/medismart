@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test pt-32 Padding</title>
+    <style>
+        /* Simulating the CSS variable */
+        :root {
+            --spacing: 0.25rem; /* 4px */
+        }
+        
+        /* Original Tailwind pt-32 */
+        .pt-32-original {
+            padding-top: calc(var(--spacing) * 32); /* 32 * 0.25rem = 8rem = 128px */
+        }
+        
+        /* Our custom pt-32 */
+        .pt-32-custom {
+            padding-top: calc(var(--spacing) * 5); /* 5 * 0.25rem = 1.25rem = 20px */
+        }
+        
+        .test-box {
+            background-color: #099aa7;
+            color: white;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .measure {
+            background-color: #f0f0f0;
+            border-left: 2px solid #333;
+            padding-left: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Testing pt-32 Padding Change</h1>
+    
+    <div class="measure">
+        <h3>CSS Variable:</h3>
+        <p>--spacing: 0.25rem (4px)</p>
+    </div>
+    
+    <div class="measure">
+        <h3>Original pt-32:</h3>
+        <p>calc(var(--spacing) * 32) = 32 * 0.25rem = 8rem = 128px</p>
+        <div class="test-box pt-32-original">
+            This has original pt-32 padding (128px top padding)
+        </div>
+    </div>
+    
+    <div class="measure">
+        <h3>Custom pt-32 (what we want):</h3>
+        <p>calc(var(--spacing) * 5) = 5 * 0.25rem = 1.25rem = 20px</p>
+        <div class="test-box pt-32-custom">
+            This has custom pt-32 padding (20px top padding)
+        </div>
+    </div>
+    
+    <div class="measure">
+        <h3>Comparison:</h3>
+        <table border="1" cellpadding="10">
+            <tr>
+                <th>Class</th>
+                <th>Calculation</th>
+                <th>Result</th>
+                <th>Visual Size</th>
+            </tr>
+            <tr>
+                <td>.pt-32-original</td>
+                <td>var(--spacing) * 32</td>
+                <td>128px</td>
+                <td>Very large padding</td>
+            </tr>
+            <tr>
+                <td>.pt-32-custom</td>
+                <td>var(--spacing) * 5</td>
+                <td>20px</td>
+                <td>Moderate padding</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="measure">
+        <h3>Other common padding values for reference:</h3>
+        <ul>
+            <li>pt-4: calc(var(--spacing) * 4) = 16px</li>
+            <li>pt-5: calc(var(--spacing) * 5) = 20px (our new pt-32)</li>
+            <li>pt-6: calc(var(--spacing) * 6) = 24px</li>
+            <li>pt-8: calc(var(--spacing) * 8) = 32px</li>
+            <li>pt-12: calc(var(--spacing) * 12) = 48px</li>
+            <li>pt-16: calc(var(--spacing) * 16) = 64px</li>
+            <li>pt-24: calc(var(--spacing) * 24) = 96px</li>
+            <li>pt-32 (original): calc(var(--spacing) * 32) = 128px</li>
+        </ul>
+    </div>
+</body>
+</html>

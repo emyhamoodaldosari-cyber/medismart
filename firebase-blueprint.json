@@ -1,0 +1,119 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stored in users/{userId}",
+      "type": "object",
+      "properties": {
+        "full_name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["customer", "pharmacist", "admin"] },
+        "email_verified": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["full_name", "email", "role"]
+    },
+    "Pharmacy": {
+      "title": "Pharmacy Location",
+      "description": "Details about a participating pharmacy",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp_contact": { "type": "string" },
+        "email": { "type": "string" },
+        "city": { "type": "string" },
+        "district": { "type": "string" },
+        "street": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "opening_time": { "type": "string" },
+        "closing_time": { "type": "string" },
+        "delivery_available": { "type": "boolean" },
+        "is_active": { "type": "boolean" }
+      },
+      "required": ["name", "phone", "city"]
+    },
+    "Medicine": {
+      "title": "Medicine Registry",
+      "description": "Global list of medicines",
+      "type": "object",
+      "properties": {
+        "category_id": { "type": "string" },
+        "brand_name": { "type": "string" },
+        "generic_name": { "type": "string" },
+        "description": { "type": "string" },
+        "dosage_form": { "type": "string" },
+        "strength": { "type": "string" },
+        "manufacturer": { "type": "string" },
+        "image_url": { "type": "string" },
+        "usage_instructions": { "type": "string" },
+        "warnings": { "type": "string" },
+        "requires_prescription": { "type": "boolean" }
+      }
+    },
+    "InventoryItem": {
+      "title": "Pharmacy Inventory",
+      "type": "object",
+      "properties": {
+        "pharmacy_id": { "type": "string" },
+        "medicine_id": { "type": "string" },
+        "quantity": { "type": "number" },
+        "price": { "type": "number" },
+        "expiry_date": { "type": "string" },
+        "in_stock": { "type": "boolean" },
+        "updated_at": { "type": "string" }
+      }
+    },
+    "Order": {
+      "title": "Medicine Order",
+      "type": "object",
+      "properties": {
+        "order_number": { "type": "string" },
+        "user_id": { "type": "string" },
+        "pharmacy_id": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "preparing", "ready", "shipped", "completed", "cancelled"] },
+        "total_amount": { "type": "number" },
+        "prescription_id": { "type": "string" },
+        "created_at": { "type": "string" }
+      }
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "type": "object",
+      "properties": {
+        "chat_id": { "type": "string" },
+        "sender_id": { "type": "string" },
+        "message": { "type": "string" },
+        "sent_at": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/pharmacies/{pharmacyId}": {
+      "schema": "Pharmacy",
+      "description": "Pharmacy registry"
+    },
+    "/medicines/{medicineId}": {
+      "schema": "Medicine",
+      "description": "Global medicine catalog"
+    },
+    "/inventory/{itemId}": {
+      "schema": "InventoryItem",
+      "description": "Unified inventory tracking"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders"
+    },
+    "/chats/{chatId}/messages/{msgId}": {
+      "schema": "ChatMessage",
+      "description": "Real-time communication between customers and pharmacists"
+    }
+  }
+}

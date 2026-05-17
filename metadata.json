@@ -1,0 +1,12 @@
+{
+  "name": "MediSmart",
+  "description": "A smart pharmacy system for medicine discovery, real-time availability tracking, and efficient order management.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "Real-time inventory",
+    "Order management",
+    "Pharmacist chat"
+  ]
+}

@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() { return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'; }
+    function isPharmacist() { return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'pharmacist'; }
+    
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // 1. Users
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isOwner(userId) && incoming().role == 'customer';
+      allow update: if isOwner(userId) && incoming().role == existing().role;
+      allow delete: if isAdmin();
+    }
+
+    // 2. Pharmacies
+    match /pharmacies/{pharmacyId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 3. Medicines
+    match /medicines/{medicineId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 4. Inventory
+    match /inventory/{itemId} {
+      allow read: if true;
+      allow write: if isPharmacist() || isAdmin();
+    }
+
+    // 5. Orders
+    match /orders/{orderId} {
+      allow read: if isSignedIn() && (isOwner(existing().user_id) || isPharmacist() || isAdmin());
+      allow create: if isSignedIn() && isOwner(incoming().user_id);
+      allow update: if isSignedIn() && (isOwner(existing().user_id) || isPharmacist() || isAdmin());
+    }
+
+    // 6. Chats
+    match /chats/{chatId} {
+      allow read: if isSignedIn() && (isOwner(resource.data.user_id) || isPharmacist());
+      allow create: if isSignedIn();
+      
+      match /messages/{msgId} {
+        allow read: if isSignedIn() && (isOwner(get(/databases/$(database)/documents/chats/$(chatId)).data.user_id) || isPharmacist());
+        allow create: if isSignedIn();
+      }
+    }
+  }
+}
