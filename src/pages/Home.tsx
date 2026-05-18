@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, MapPin, MessageSquare, ShoppingCart, UserCheck, Activity, Phone, Mail, Clock, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import ContactForm from '../components/ContactForm';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -258,45 +259,7 @@ const Home = () => {
             </div>
 
             <div className="lg:w-2/3">
-              <form className="bg-gray-50 p-10 md:p-14 rounded-[50px] space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-[#363f40] ml-1">{t('home.contact.fullName')}</label>
-                    <input 
-                      type="text" 
-                      className="w-full px-6 py-4 rounded-2xl bg-white border border-gray-100 focus:outline-none focus:ring-2 focus:ring-[#099aa7]/20 focus:border-[#099aa7] transition-all"
-                      placeholder={t('home.contact.fullNamePlaceholder')}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-[#363f40] ml-1">{t('home.contact.emailAddress')}</label>
-                    <input 
-                      type="email" 
-                      className="w-full px-6 py-4 rounded-2xl bg-white border border-gray-100 focus:outline-none focus:ring-2 focus:ring-[#099aa7]/20 focus:border-[#099aa7] transition-all"
-                      placeholder={t('home.contact.emailPlaceholder')}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-[#363f40] ml-1">{t('home.contact.subject')}</label>
-                  <input 
-                    type="text" 
-                    className="w-full px-6 py-4 rounded-2xl bg-white border border-gray-100 focus:outline-none focus:ring-2 focus:ring-[#099aa7]/20 focus:border-[#099aa7] transition-all"
-                    placeholder={t('home.contact.subjectPlaceholder')}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-[#363f40] ml-1">{t('home.contact.message')}</label>
-                  <textarea 
-                    rows={5}
-                    className="w-full px-6 py-4 rounded-2xl bg-white border border-gray-100 focus:outline-none focus:ring-2 focus:ring-[#099aa7]/20 focus:border-[#099aa7] transition-all resize-none"
-                    placeholder={t('home.contact.messagePlaceholder')}
-                  ></textarea>
-                </div>
-                <button type="button" className="w-1/2 mx-auto block py-5 bg-[#099aa7] text-white font-bold rounded-2xl hover:bg-[#088a96] transition-all shadow-xl shadow-[#099aa7]/10">
-                  {t('home.contact.send')}
-                </button>
-              </form>
+              <ContactForm t={t} />
             </div>
           </div>
         </div>

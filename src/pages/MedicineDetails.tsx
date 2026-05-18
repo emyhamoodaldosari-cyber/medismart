@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ArrowLeft, Heart, MessageSquare, ShoppingCart, MapPin, AlertCircle, Loader, TrendingDown } from 'lucide-react';
+import { ArrowLeft, Heart, MessageSquare, ShoppingCart, MapPin, AlertCircle, Loader, TrendingDown, X, Upload } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { Medicine, InventoryItem } from '../types';
-import { addToCart, getOrCreateCart } from '../services/api';
+import { Medicine, InventoryItem, UserAddress } from '../types';
+import { addToCart, getOrCreateCart, getUserAddresses } from '../services/api';
 import { TERMINOLOGY } from '../constants/terminology';
 import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -68,6 +68,13 @@ const MedicineDetails = () => {
   const [selectedPharmacy, setSelectedPharmacy] = useState<InventoryItem | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
+  const [prescriptionUploading, setPrescriptionUploading] = useState(false);
+  const [userAddresses, setUserAddresses] = useState<UserAddress[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<UserAddress | null>(null);
+  const [showAddressModal, setShowAddressModal] = useState(false);
 
   useEffect(() => {
     fetchMedicineDetails();
@@ -124,8 +131,21 @@ const MedicineDetails = () => {
   useEffect(() => {
     if (user && medicine) {
       checkIfSaved();
+      loadUserAddresses();
     }
   }, [user, medicine]);
+
+  const loadUserAddresses = async () => {
+    if (!user) return;
+    try {
+      const addresses = await getUserAddresses(user.id);
+      setUserAddresses(addresses);
+      const defaultAddr = addresses.find(a => a.is_default);
+      setSelectedAddress(defaultAddr || addresses[0] || null);
+    } catch (error: any) {
+      console.error('Error loading addresses:', error);
+    }
+  };
 
   const fetchMedicineDetails = async () => {
     try {
@@ -205,12 +225,35 @@ const MedicineDetails = () => {
   };
 
   const handleAddToCart = async () => {
-    if (!user || !selectedPharmacy) return;
+    if (!user) {
+      setShowLoginAlert(true);
+      return;
+    }
+
+    if (medicine?.requires_prescription && !prescriptionFile) {
+      setShowPrescriptionModal(true);
+      return;
+    }
+
+    if (!selectedAddress) {
+      setShowAddressModal(true);
+      showToast('Please select a delivery address', 'error');
+      return;
+    }
 
     try {
       setAddingToCart(true);
-      const cart = await getOrCreateCart(user.id, selectedPharmacy.pharmacy_id);
-      await addToCart(cart.id, medicineId!, quantity, selectedPharmacy.price);
+      const cart = await getOrCreateCart(user.id, selectedPharmacy?.pharmacy_id);
+      await addToCart(cart.id, medicineId!, quantity, selectedPharmacy?.price || 0);
+
+      // If prescription was uploaded, associate it with the order later at checkout
+      if (medicine?.requires_prescription && prescriptionFile) {
+        sessionStorage.setItem(`prescription_${medicineId}`, JSON.stringify({
+          file: prescriptionFile.name,
+          timestamp: Date.now()
+        }));
+      }
+
       showToast(td('addToCartSuccess'), 'success');
       navigate('/cart');
     } catch (error: any) {
@@ -218,6 +261,62 @@ const MedicineDetails = () => {
     } finally {
       setAddingToCart(false);
     }
+  };
+
+  const handlePrescriptionUpload = async (file: File) => {
+    if (!user) {
+      showToast('Please login to upload prescription', 'error');
+      return;
+    }
+
+    try {
+      setPrescriptionUploading(true);
+
+      // Validate file
+      const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      if (!validTypes.includes(file.type)) {
+        showToast('Only PDF, JPEG, and PNG files are allowed', 'error');
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        showToast('File size must be less than 10MB', 'error');
+        return;
+      }
+
+      // Upload to Supabase storage
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || file.type.split('/')[1];
+      const fileName = `${user.id}-${medicineId}-${Date.now()}.${fileExt}`;
+      const filePath = `prescriptions/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('prescriptions')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error('Failed to upload prescription file');
+      }
+
+      setPrescriptionFile(file);
+      setShowPrescriptionModal(false);
+      showToast('Prescription uploaded successfully', 'success');
+    } catch (error: any) {
+      showToast(error.message || 'Failed to upload prescription', 'error');
+    } finally {
+      setPrescriptionUploading(false);
+    }
+  };
+
+  const handleAskPharmacist = () => {
+    if (!user) {
+      setShowLoginAlert(true);
+      return;
+    }
+    navigate(`/chat?pharmacy=${selectedPharmacy?.pharmacy_id}`);
   };
 
   if (loading) {
@@ -515,13 +614,26 @@ const MedicineDetails = () => {
                 </button>
 
                 <button 
-                  onClick={() => navigate(`/chat?pharmacy=${selectedPharmacy.pharmacy_id}`)}
+                  onClick={handleAskPharmacist}
                   className="w-full py-4 bg-slate-100 text-[#1f2f31] font-bold rounded-2xl hover:bg-slate-200 transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-[#099aa7] focus:ring-offset-2"
                   aria-label={labels.askPharmacist}
                 >
                   <MessageSquare size={20} />
                   {labels.askPharmacist}
                 </button>
+
+                {medicine.requires_prescription && prescriptionFile && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                    <span className="text-sm font-semibold text-green-700">✓ Prescription uploaded</span>
+                    <button
+                      onClick={() => setPrescriptionFile(null)}
+                      className="text-green-600 hover:text-green-800 focus:outline-none"
+                      aria-label="Remove prescription"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -533,9 +645,117 @@ const MedicineDetails = () => {
             )}
           </motion.div>
         </div>
+
+        {/* Login Alert Modal */}
+        {showLoginAlert && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-xl"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-2xl font-bold text-[#1f2f31]">Sign In Required</h3>
+                <button
+                  onClick={() => setShowLoginAlert(false)}
+                  className="text-slate-400 hover:text-slate-600 focus:outline-none"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <p className="text-slate-600 mb-8">
+                Please sign in to your account to add items to cart or chat with pharmacists.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLoginAlert(false)}
+                  className="flex-1 py-3 border border-slate-200 rounded-2xl font-bold hover:bg-slate-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowLoginAlert(false);
+                    navigate('/login');
+                  }}
+                  className="flex-1 py-3 bg-[#099aa7] text-white rounded-2xl font-bold hover:bg-[#088a96] transition-all"
+                >
+                  Sign In
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Prescription Upload Modal */}
+        {showPrescriptionModal && medicine?.requires_prescription && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-xl"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-2xl font-bold text-[#1f2f31]">Upload Prescription</h3>
+                <button
+                  onClick={() => setShowPrescriptionModal(false)}
+                  className="text-slate-400 hover:text-slate-600 focus:outline-none"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <p className="text-slate-600 mb-6">
+                This medicine requires a prescription. Please upload a valid prescription file (PDF or image).
+              </p>
+              <label className="block">
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handlePrescriptionUpload(file);
+                    }
+                  }}
+                  disabled={prescriptionUploading}
+                  className="hidden"
+                />
+                <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center cursor-pointer hover:border-[#099aa7] hover:bg-[#099aa7]/5 transition-all">
+                  <Upload className="mx-auto mb-3 text-slate-400" size={32} />
+                  <p className="font-semibold text-slate-700 mb-1">Click to upload</p>
+                  <p className="text-sm text-slate-500">PDF, JPEG, or PNG up to 10MB</p>
+                  {prescriptionFile && (
+                    <p className="text-sm text-green-600 mt-2">✓ {prescriptionFile.name}</p>
+                  )}
+                </div>
+              </label>
+              <div className="mt-6 flex gap-3">
+                <button
+                  onClick={() => setShowPrescriptionModal(false)}
+                  disabled={prescriptionUploading}
+                  className="flex-1 py-3 border border-slate-200 rounded-2xl font-bold hover:bg-slate-50 transition-all disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (prescriptionFile) {
+                      setShowPrescriptionModal(false);
+                    }
+                  }}
+                  disabled={!prescriptionFile || prescriptionUploading}
+                  className="flex-1 py-3 bg-[#099aa7] text-white rounded-2xl font-bold hover:bg-[#088a96] transition-all disabled:opacity-50"
+                >
+                  {prescriptionUploading ? 'Uploading...' : 'Continue'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default MedicineDetails;
+

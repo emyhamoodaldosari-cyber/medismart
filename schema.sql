@@ -87,8 +87,13 @@ CREATE TABLE public.medicines (
   brand_name_ar text,
   generic_name_ar text,
   description_ar text,
+  image_storage_path text,
   CONSTRAINT medicines_pkey PRIMARY KEY (id),
   CONSTRAINT medicines_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
+);
+CREATE TABLE public.medicines_image_backup (
+  id uuid,
+  image_url text
 );
 CREATE TABLE public.notifications (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

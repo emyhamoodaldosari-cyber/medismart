@@ -18,13 +18,23 @@ const Header = () => {
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
     if (path.startsWith('/#')) {
-      e.preventDefault();
       const id = path.substring(2);
+      if (location.pathname !== '/') {
+        e.preventDefault();
+        navigate({ pathname: '/', hash: `#${id}` });
+        return;
+      }
+      e.preventDefault();
       const element = document.getElementById(id);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     }
+  };
+
+  const handleMobileNavClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    handleNavClick(e, path);
+    setIsMenuOpen(false);
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -61,6 +71,16 @@ const Header = () => {
   ];
 
   const currentLinks = !user ? publicLinks : (isAdmin ? adminLinks : isPharmacist ? pharmacistLinks : customerLinks);
+
+  React.useEffect(() => {
+    if (location.pathname === '/' && location.hash) {
+      const id = location.hash.substring(1);
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [location.pathname, location.hash]);
 
   const handleLogout = async () => {
     await signOut();
@@ -184,7 +204,7 @@ const Header = () => {
                 <a
                   key={link.path}
                   href={link.path}
-                  onClick={(e) => { handleNavClick(e, link.path); setIsMenuOpen(false); }}
+                  onClick={(e) => handleMobileNavClick(e, link.path)}
                   className={`text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-[#099aa7] rounded-lg p-2 ${
                     isActive(link.path) ? 'text-[#099aa7]' : 'text-[#1f2f31]'
                   }`}

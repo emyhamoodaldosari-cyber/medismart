@@ -22,10 +22,10 @@ const Footer = () => {
   ], [t]);
 
   return (
-    <footer className="bg-[#1f2f31] text-white pt-24 pb-12 border-t border-white/5">
+    <footer className="bg-[#1f2f31] text-white pt-12 pb-8 border-t border-white/5">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-24">
-          <div className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
+          <div className="space-y-6">
             <div className={`flex items-center ${direction === 'rtl' ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
               <img src="/logo.png" alt="MediSmart Logo" className="w-12 h-12 rounded-xl bg-white p-1" />
               <span className="text-2xl font-heading font-bold tracking-tighter whitespace-nowrap">
@@ -86,7 +86,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="pt-12 border-t border-white/5 flex justify-center items-center">
+        <div className="pt-8 border-t border-white/5 flex justify-center items-center">
           <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500 text-center">
             © {new Date().getFullYear()} MediSmart. {t('footer.copyright')}
           </p>

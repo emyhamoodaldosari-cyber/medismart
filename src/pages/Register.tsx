@@ -58,10 +58,9 @@ const Register = () => {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full bg-white rounded-[40px] border border-gray-100 shadow-2xl shadow-[#1f2f31]/5 p-8 lg:p-10 my-6"
       >
-        <div className="mb-4 text-center">
+        <div className="mb-2 text-center">
           <img src="/logo.png" alt="MediSmart Logo" className="w-16 h-16 mx-auto mb-2 object-contain" />
           <h2 className="text-3xl font-heading font-bold text-[#1f2f31] tracking-tight text-center">{t('auth.register.title')}</h2>
-          <p className="text-[#363f40] mt-3 font-medium text-sm">{t('auth.register.subtitle')}</p>
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4">
@@ -131,7 +130,7 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-3/4 mx-auto h-12 bg-[#099aa7] text-white font-bold rounded-2xl hover:bg-[#088a96] shadow-xl shadow-[#099aa7]/10 transition-all flex items-center justify-center uppercase tracking-widest text-[11px] disabled:opacity-50 mt-4"
+            className="w-3/4 mx-auto h-12 bg-[#099aa7] text-white font-bold rounded-2xl hover:bg-[#088a96] shadow-xl shadow-[#099aa7]/10 transition-all flex items-center justify-center uppercase tracking-widest text-[11px] disabled:opacity-50 mt-6"
           >
             {loading ? t('auth.register.processing') : t('auth.register.registerButton')}
           </button>
